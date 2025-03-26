@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+*.log
+tmp
+/tmp
+*.swp
+*.bak
+*~
+.vscode/
+app/frontend/.gitignore
+app/frontend/node_modules
+*.pyc
+__pycache__/
+venv/
+.venv/
+env/
