@@ -43,6 +43,14 @@ A web application to store and play your favorite videos from Bilibili and YouTu
 4.  Click on a video card to play the video.
 5.  Click the "Remove" button to remove a video.
 
+## Deployment
+
+This project can be deployed to Vercel.
+
+1.  Install the Vercel CLI: `npm install -g vercel`
+2.  Log in to Vercel: `vercel login`
+3.  Deploy the project: `vercel`
+
 ## Future Enhancements
 
 *   Implement custom thumbnails for Bilibili videos.

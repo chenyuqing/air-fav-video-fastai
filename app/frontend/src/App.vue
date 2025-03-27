@@ -70,15 +70,24 @@ export default {
     isDuplicateVideo() {
       if (!this.newVideo) return false;
       try {
-        const newVideoUrl = new URL(this.newVideo.url);
-        const newVideoBaseUrl = `${newVideoUrl.origin}${newVideoUrl.pathname}`;
-        return this.videos.some(v => {
-          const existingVideoUrl = new URL(v.url);
-          const existingVideoBaseUrl = `${existingVideoUrl.origin}${existingVideoUrl.pathname}`;
-          return existingVideoBaseUrl === newVideoBaseUrl;
-        });
+        if (this.newVideo.platform === 'youtube') {
+          // For YouTube, compare video IDs
+          const newVideoId = this.getVideoId(this.newVideo.url);
+          return this.videos.some(v => {
+            return v.platform === 'youtube' && this.getVideoId(v.url) === newVideoId;
+          });
+        } else {
+          // For other platforms (e.g., Bilibili), compare base URLs
+          const newVideoUrl = new URL(this.newVideo.url);
+          const newVideoBaseUrl = `${newVideoUrl.origin}${newVideoUrl.pathname}`;
+          return this.videos.some(v => {
+            const existingVideoUrl = new URL(v.url);
+            const existingVideoBaseUrl = `${existingVideoUrl.origin}${existingVideoUrl.pathname}`;
+            return existingVideoBaseUrl === newVideoBaseUrl;
+          });
+        }
       } catch (error) {
-        console.error("Error parsing URL:", error);
+        console.error("Error in isDuplicateVideo:", error);
         return false;
       }
     }
@@ -94,7 +103,7 @@ export default {
   methods: {
     async getVideoTitle(url, platform) {
       try {
-        const response = await fetch('http://localhost:8000/get-video-title', {
+        const response = await fetch(`${process.env.VITE_API_URL}/get-video-title`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -117,7 +126,7 @@ export default {
     },
     async fetchVideos() {
       try {
-        const response = await fetch('http://localhost:8000/videos');
+        const response = await fetch(`${process.env.VITE_API_URL}/videos`);
         if (!response.ok) {
           throw new Error('Failed to fetch videos');
         }
@@ -247,7 +256,7 @@ export default {
 
         console.log('Adding video:', videoData);
 
-        const response = await fetch('http://localhost:8000/videos', {
+        const response = await fetch(`${process.env.VITE_API_URL}/videos`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -350,6 +359,25 @@ export default {
     },
     removeVideo(video) {
       this.videos = this.videos.filter(v => v.id !== video.id);
+    },
+    getVideoId(url) {
+      if (!url) return null;
+      let videoId = null;
+      
+      if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1];
+      } else if (url.includes('/v/')) {
+        videoId = url.split('/v/')[1];
+      } else if (url.includes('watch?v=')) {
+        videoId = url.split('watch?v=')[1];
+      } else if (url.includes('embed/')) {
+        videoId = url.split('embed/')[1];
+      }
+
+      if (videoId) {
+        return videoId.split('&')[0].split('?')[0].split('#')[0];
+      }
+      return null;
     }
   }
 }
